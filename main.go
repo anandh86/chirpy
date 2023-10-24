@@ -34,6 +34,7 @@ func main() {
 	subRouter.Get("/reset", apiCfg.handlerReset)
 	subRouter.Post("/chirps", apiCfg.postChirp)
 	subRouter.Get("/chirps", apiCfg.getChirp)
+	subRouter.Get("/chirps/{chirpID}", apiCfg.getChirpById)
 
 	r.Mount("/admin", adminRouter)
 	r.Mount("/api", subRouter)

@@ -6,7 +6,10 @@ import (
 	"net/http"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type ChirpRequest struct {
@@ -50,6 +53,37 @@ func (cfg *apiConfig) getChirp(w http.ResponseWriter, r *http.Request) {
 	})
 
 	respondWithJSON(w, http.StatusOK, chirps)
+}
+
+func (cfg *apiConfig) getChirpById(w http.ResponseWriter, r *http.Request) {
+	// Read the input parameter
+	chirpIDStr := chi.URLParam(r, "chirpID")
+	chirpID, err1 := strconv.Atoi(chirpIDStr)
+
+	if err1 != nil {
+		respondWithError(w, http.StatusInternalServerError, "invalid id")
+		return
+	}
+
+	dbChirps, err := cfg.DB.GetChirps()
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't retrieve chirps")
+		return
+	}
+
+	for _, dbChirp := range dbChirps {
+
+		if dbChirp.ID == chirpID {
+			chirp := Chirp{ID: dbChirp.ID, Body: dbChirp.Body}
+			// return early
+			respondWithJSON(w, http.StatusOK, chirp)
+			return
+		}
+	}
+
+	// 404 for failure
+	respondWithError(w, http.StatusNotFound, "Not found")
 }
 
 func (cfg *apiConfig) postChirp(w http.ResponseWriter, r *http.Request) {
